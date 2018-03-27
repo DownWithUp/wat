@@ -70,6 +70,4 @@ include 'api\kernel32.inc'
 import msvcrt,\
        printf, 'printf',\
        fgets, 'fgets',\
-       strlen, 'strlen',\
-       __p__iob, '__p__iob',\
        __getmainargs, '__getmainargs'
