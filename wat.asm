@@ -24,8 +24,6 @@ cArgv dd ?
 cEnv dd ?
 sInfo STARTUPINFO
 
-
-
 section '.text' code readable writable executable
 showHelp:
         invoke printf, szMsgHelp
