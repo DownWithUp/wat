@@ -18,7 +18,6 @@ hFile dd ?
 lpBytesRead dd ?
 hHeap dd ?
 pHeapData dd ?
-
 nArgc dd ?
 cArgv dd ?
 cEnv dd ?
