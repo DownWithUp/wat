@@ -1,4 +1,4 @@
-;wat, the coreutils spin off of cat, for Windows.
+; wat, the coreutils spin off of cat, for Windows.
 
 Format PE Console
 include 'win32a.inc'
@@ -7,12 +7,8 @@ entry start
 section '.data' data readable writable
 szMsgHelp db "Usage: wat [filename]", 0xA, 0
 szFile db "%s", 0xA, 0
-szArgv db "ARGV[0] = %s", 0xA, 0
 
 section '.bss' readable writable
-szFileName rb 256
-nArgs dd ?
-pArgStr dd ?
 nSizeOfFile dd ?
 hFile dd ?
 lpBytesRead dd ?
@@ -25,38 +21,33 @@ sInfo STARTUPINFO
 
 section '.text' code readable writable executable
 showHelp:
-        invoke printf, szMsgHelp
+        cinvoke printf, szMsgHelp
         invoke ExitProcess, 0
 start:
 
         cinvoke __getmainargs, nArgc, cArgv, cEnv, 0, sInfo
-
-        cmp [nArgc], 2 ;Must have 2 arguments
+        cmp [nArgc], 2 ; Must have 2 arguments
         jne showHelp
 
         mov eax, [cArgv]
         mov eax, [eax]
-        invoke strlen, eax ;Length of first argument
-        inc eax ;Add 1 byte for 0x00
-        add ecx, eax ;Points to second arguemnt
+        cinvoke strlen, eax ; Length of first argument
+        inc eax ; Add 1 byte for null (0x00) at the end of the first string
+        add ecx, eax ; Points to second arguemnt string
 
-        mov ebx, ecx
-        mov DWORD [szFileName], ebx
-        invoke CreateFile, ebx, GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL
+        invoke CreateFile, ecx, GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL
         mov [hFile], eax
         invoke GetFileSize, [hFile], 0
-        inc eax ;We need +1 Byte (0x00) for newline
+        inc eax ; We need +1 Byte (0x00) for newline
         mov [nSizeOfFile], eax
-        ;Create a heap for our file's contents
-        invoke GetProcessHeap
+        invoke GetProcessHeap ; Create a heap for our file's contents
         mov [hHeap], eax
         invoke HeapAlloc, [hHeap], HEAP_ZERO_MEMORY, [nSizeOfFile]
         mov [pHeapData], eax
+        invoke ReadFile, [hFile], [pHeapData], [nSizeOfFile], lpBytesRead, 0 ; Read data from our heap
 
-        invoke ReadFile, [hFile], [pHeapData], [nSizeOfFile], lpBytesRead, 0 ;Read data from our heap
-
-        invoke printf, szFile, [pHeapData]
-        invoke HeapFree, [hHeap] ;Proper way
+        cinvoke printf, szFile, [pHeapData]
+        invoke HeapFree, [hHeap] ; No memory leaks
         invoke ExitProcess, 0
 
 
@@ -65,7 +56,7 @@ library kernel32, 'kernel32.dll',\
         msvcrt, 'msvcrt.dll'
 
 include 'api\kernel32.inc'
-
 import msvcrt,\
        printf, 'printf',\
-       __getmainargs, '__getmainargs'
+       __getmainargs, '__getmainargs',\
+       strlen, 'strlen'
